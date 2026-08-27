@@ -67,10 +67,10 @@ types:
       idRegisto: string
       estado:
         type: string
-        enum:
+        enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
       dataCriacao:
         type: datetime
-      motivo:
+      motivo_deteccao:
         type: string
         required: false
         description: |
