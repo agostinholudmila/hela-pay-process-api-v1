@@ -28,6 +28,13 @@ description: |
   exposto ao consumidor é o Control Record da Payment Instruction.
 
 types:
+  TelefoneDestino:
+   type: string
+        description: número de telefone de destino.
+        pattern: "^[9][0-9]{8}$"
+        minLength: 9
+        maxLength: 9
+        example: "923456789"
   PaymentInstruction:
     type: object
     properties:
@@ -39,13 +46,6 @@ types:
       contaOrigem:
         type: string
         description: IBAN/número da conta de origem.
-  TelefoneDestino:
-        type: string
-        description: número de telefone de destino.
-        pattern: "^[9][0-9]{8}$"
-        minLength: 9
-        maxLength: 9
-        example: "923456789"
       montante:
         type: number
         format: double
