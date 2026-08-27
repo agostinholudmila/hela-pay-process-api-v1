@@ -33,7 +33,7 @@ types:
    type: string
    pattern: "^PI-[0-9]{4}-[0-9]{6}$"
    example: "PI-2026-000123"
-   
+
   TelefoneDestino:
    type: string
    description: número de telefone de destino.
@@ -46,7 +46,7 @@ types:
     type: object
     properties:
       crReferenceId:
-        type: string
+        type: CRReferenceId
         description: |
           Control Record Reference do Service Domain Payment
           Instruction. Identificador único da transferência.
