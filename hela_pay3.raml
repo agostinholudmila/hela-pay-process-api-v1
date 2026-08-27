@@ -71,6 +71,7 @@ types:
       telefoneDestino: "923456789"
       montante: 15000.00
       estado: "PENDING"   
+
   PaymentInstructionCreateRequest:
     type: object
     properties:
@@ -81,7 +82,11 @@ types:
         type: number
         format: double
         minimum: 0.01
-
+    example:
+     contaOrigem: "AO06004400001234567890123"
+     telefoneDestino: "923456789"
+     montante: 15000.00
+     
   AuditLogEntry:
     type: object
     properties:
