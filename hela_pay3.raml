@@ -39,7 +39,7 @@ types:
       contaOrigem:
         type: string
         description: IBAN/número da conta de origem.
-      telefoneDestino:
+      TelefoneDestino:
         type: string
         description: número de telefone de destino.
         pattern: "^[9][0-9]{8}$"
@@ -61,7 +61,7 @@ types:
     properties:
       contaOrigem: string
       telefoneDestino:
-        type: telefoneDestino:
+        type: TelefoneDestino
       montante:
         type: number
         format: double
