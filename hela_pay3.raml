@@ -4,6 +4,8 @@ version: v1
 baseUri: https://api.hela-pay.ao/process/{version}
 mediaType: application/json
 
+uses:
+  security: security.raml
 description: |
   Process API que orquestra a Control Record (CR) do Service Domain
   Payment Instruction, coordenando internamente os seguintes Service
