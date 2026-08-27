@@ -28,7 +28,8 @@ securitySchemes:
           description: Token válido, mas sem o scope necessário para esta operação
     settings:
       accessTokenUri: https://auth.pay.ao/oauth2/token
-      authorizationGrants: [client_credentials]
+      authorizationGrants:
+        - [client_credentials]
       scopes:
         - payments:write
         - payments:read
