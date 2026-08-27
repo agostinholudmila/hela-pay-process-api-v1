@@ -27,6 +27,12 @@ description: |
   API — são consultados/atualizados internamente. O único recurso
   exposto ao consumidor é o Control Record da Payment Instruction.
 
+  Atributos alinhados ao standard IFX onde existe correspondência
+  direta ou aproximada (xferId, fromAccRef, curAmt, XferStatus).
+  Onde não existe correspondência no IFX, mantém-se a nomenclatura
+  original do modelo conceitual (telefoneDestino, idRegisto,
+  dataHoraRegisto, motivoDeteccao, chave de idempotência).
+
 types:
 
   TipoOrigem:
@@ -44,7 +50,7 @@ types:
    pattern: "^[9][0-9]{8}$"
    minLength: 9
    maxLength: 9
-   example: "923456789"  
+   example: "923456789"
 
   PaymentInstruction:
     type: object
@@ -54,27 +60,38 @@ types:
         description: |
           Control Record Reference do Service Domain Payment
           Instruction. Identificador único da transferência.
-      fromAccRef :
+          (IFX: xferId — correspondência direta)
+      fromAccRef:
         type: string
-        description: IBAN/número da conta de origem.
-      curAmt :
+        description: |
+          IBAN/número da conta de origem.
+          (IFX: fromAccRef — correspondência direta)
+      curAmt:
         type: number
         format: double
-      telefoneDestino :
-         type: TelefoneDestino
-         description: Número de telefone de destino.
-      XferStatus :
+        description: |
+          Valor e moeda da transferência.
+          (IFX: curAmt — correspondência direta)
+      telefoneDestino:
+        type: TelefoneDestino
+        description: |
+          Número de telefone de destino.
+          (IFX: sem correspondência direta — o mapeamento oficial
+          assume conta_destino_id -> toAcctRef, mas aqui o destino
+          é identificado por telefone/wallet, não por conta)
+      XferStatus:
         type: string
         enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
         description: |
           Estado do Control Record. FAILED cobre tanto rejeição por
           limite (Payment Order) como por fraude (Fraud Resolution).
+          (IFX: XferStatus — correspondência direta)
     example:
       xferId: "PI-2026-000123"
-      fromAccRef : "AO06004400001234567890123"
-      telefoneDestino : "923456789"
-      curAmt : 15000.00
-      XferStatus : "PENDING"   
+      fromAccRef: "AO06004400001234567890123"
+      telefoneDestino: "923456789"
+      curAmt: 15000.00
+      XferStatus: "PENDING"
 
   PaymentInstructionCreateRequest:
     type: object
@@ -84,24 +101,24 @@ types:
       fromAccRef: string
       telefoneDestino:
         type: TelefoneDestino
-      montante:
+      curAmt:
         type: number
         format: double
         minimum: 0.01
-      
     example:
      origemSistema: BANCO
      fromAccRef: "AO06004400001234567890123"
      telefoneDestino: "923456789"
-     montante: 15000.00
+     curAmt: 15000.00
 
   AuditLogEntry:
     type: object
     properties:
       idRegisto: string
-      estado:
+      XferStatus:
         type: string
         enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
+        description: (IFX: XferStatus — correspondência direta)
       dataHoraRegisto:
         type: datetime
       motivoDeteccao:
@@ -111,9 +128,11 @@ types:
           Preenchido quando o estado resulta de um alerta (limite
           excedido via Payment Order, ou anomalia via Fraud
           Resolution).
+          (IFX: sem correspondência direta como motivo_falha; se
+          entendido como Alerta.motivo, aproxima-se de AlertType)
     example:
       idRegisto: "REG-001"
-      estado: "PENDING"
+      XferStatus: "PENDING"
       dataHoraRegisto: "2026-08-27T10:15:00Z"
       motivoDeteccao: "Frequência de transferências acima do limite definido."
 
@@ -147,9 +166,9 @@ types:
         type: PaymentInstructionCreateRequest
         example:
          origemSistema: BANCO
-         contaOrigem: "AO06004400001234567890123"
+         fromAccRef: "AO06004400001234567890123"
          telefoneDestino: "923456789"
-         montante: 15000.00
+         curAmt: 15000.00
     responses:
       201:
         body:
@@ -171,7 +190,7 @@ types:
            type: Erro
            examples:
             limiteExcedido:
-             codigo: "LIMITE_EXCEDIDO "
+             codigo: "LIMITE_EXCEDIDO"
              mensagem: "Limite diário de transferência excedido."
             fraudeDetetada:
               codigo: "FRAUDE_DETETADA"
@@ -206,9 +225,9 @@ types:
           2. verifica o limite diário aplicável;
           3. solicita o débito na conta/wallet de origem;
           4. após confirmação do débito, solicita o crédito na conta/wallet de destino;
-          5. caso o crédito não seja confirmado dentro do SLA definido, solicita a reversão do débito.Em caso de sucesso do crédito, a Process API atualiza o estado
+          5. caso o crédito não seja confirmado dentro do SLA definido, solicita a reversão do débito.
+          Em caso de sucesso do crédito, a Process API atualiza o estado
           da transferência para COMPLETED.
-
         headers:
           Idempotency-Key:
             type: string
