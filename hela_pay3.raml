@@ -1,2 +1,193 @@
 #%RAML 1.0
-title: hela_pay3
+title: Payment Instruction Process API
+version: v1
+baseUri: https://api.bai.ao/process/payment-instruction/{version}
+mediaType: application/json
+
+description: |
+  Process API que orquestra a Control Record (CR) do Service Domain
+  Payment Instruction, coordenando internamente os seguintes Service
+  Domains BIAN durante o ciclo de vida da transferência:
+
+    - Product Directory     -> Retrieve do limite diário (RF-009)
+    - Payment Order         -> Control/Evaluate: alerta de limite
+                                excedido (RF-012)
+    - Fraud Resolution      -> Register: alerta de frequência
+                                anómala (RF-013)
+    - Transaction Authorization -> Grant: autorização de débito
+                                (RF-004)
+    - Current Account       -> Retrieve: validação de saldo
+    - Payment Execution     -> Request: execução do crédito/débito
+                                e reversão automática (RF-005/007)
+    - Compliance Reporting  -> Register/Retrieve: registo de
+                                auditoria (RF-006/014, correspondência
+                                indireta)
+
+  Nenhum destes Service Domains é exposto como recurso próprio nesta
+  API — são consultados/atualizados internamente. O único recurso
+  exposto ao consumidor é o Control Record da Payment Instruction.
+
+types:
+  PaymentInstruction:
+    type: object
+    properties:
+      crReferenceId:
+        type: string
+        description: |
+          Control Record Reference do Service Domain Payment
+          Instruction. Identificador único da transferência.
+      contaOrigem:
+        type: string
+        description: IBAN/número da conta de origem.
+      contaDestino:
+        type: string
+        description: IBAN/número da conta de destino.
+      montante:
+        type: number
+        format: double
+      estado:
+        type: string
+        enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
+        description: |
+          Estado do Control Record. FAILED cobre tanto rejeição por
+          limite (Payment Order) como por fraude (Fraud Resolution).
+
+  PaymentInstructionCreateRequest:
+    type: object
+    properties:
+      contaOrigem: string
+      contaDestino: string
+      montante: number
+
+  AuditLogEntry:
+    type: object
+    properties:
+      idRegisto: string
+      estado: string
+      dataCriacao:
+        type: datetime
+      motivo:
+        type: string
+        required: false
+        description: |
+          Preenchido quando o estado resulta de um alerta (limite
+          excedido via Payment Order, ou anomalia via Fraud
+          Resolution).
+
+  Erro:
+    type: object
+    properties:
+      codigo: string
+      mensagem: string
+
+/payment-instruction:
+  displayName: Payment Instruction - Initiate
+
+  post:
+    displayName: Initiate
+    description: |
+      RF-001/RF-002: Inicia a transferência. Antes de criar o CR,
+      consulta o Product Directory (Retrieve do limite diário,
+      RF-009). Se excedido, aciona Payment Order (alerta RF-012) e
+      devolve 422. Em paralelo, avalia padrão de frequência via
+      Fraud Resolution (RF-013); se anómalo, sinaliza para revisão
+      sem bloquear necessariamente a transferência.
+    headers:
+      Idempotency-Key:
+        type: string
+        required: true
+    body:
+      application/json:
+        type: PaymentInstructionCreateRequest
+        example:
+          contaOrigem: "AO06004400001234567890123"
+          contaDestino: "AO06005500009876543210987"
+          montante: 15000.00
+    responses:
+      201:
+        body:
+          application/json:
+            type: PaymentInstruction
+      400:
+        body:
+          application/json:
+            type: Erro
+      409:
+        description: Chave de idempotência já utilizada.
+        body:
+          application/json:
+            type: Erro
+      422:
+        description: |
+          Limite diário excedido (Product Directory + Payment Order)
+          ou bloqueio por deteção de fraude (Fraud Resolution).
+        body:
+          application/json:
+            type: Erro
+
+  /{crReferenceId}:
+    uriParameters:
+      crReferenceId:
+        type: string
+
+    get:
+      displayName: Retrieve
+      description: |
+        RF-003: Consulta o estado atual do Control Record.
+      responses:
+        200:
+          body:
+            application/json:
+              type: PaymentInstruction
+        404:
+          body:
+            application/json:
+              type: Erro
+
+    /execution-request:
+      post:
+        displayName: Request
+        description: |
+          RF-002/RF-004/RF-005/RF-007: Solicita a execução da
+          transferência. Internamente: Transaction Authorization
+          (Grant do débito) -> Current Account (Retrieve de saldo)
+          -> Payment Execution (Request de crédito/débito). Em falta
+          de confirmação, o Payment Execution aplica reversão
+          automática (RF-007).
+        headers:
+          Idempotency-Key:
+            type: string
+            required: true
+        responses:
+          200:
+            body:
+              application/json:
+                type: PaymentInstruction
+          404:
+            body:
+              application/json:
+                type: Erro
+          422:
+            description: Autorização de débito negada ou saldo insuficiente.
+            body:
+              application/json:
+                type: Erro
+
+    /audit-log:
+      get:
+        displayName: Retrieve
+        description: |
+          RF-006/RF-014: Consulta o histórico de estados do CR
+          (timestamps, motivo em caso de falha/reversão/alerta).
+          Corresponde a uma consulta ao Compliance Reporting
+          (correspondência indireta — este SD consolida os registos,
+          mas não é o dono direto do audit trail por transferência).
+        responses:
+          200:
+            body:
+              application/json:
+                type: AuditLogEntry[]
+          404:
+            body:
+              application/json:
+                type: Erro
