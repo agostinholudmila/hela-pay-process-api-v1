@@ -167,17 +167,17 @@ types:
       422:
         description: Transferência rejeitada por regra de negócio.
         body:
-         application/json:
-          type: Erro
+          application/json:
+           type: Erro
        examples:
-        limiteExcedido:
-          value:
-            codigo: LIMITE_EXCEDIDO
-            mensagem: Limite diário de transferência excedido.
-        fraudeDetetada:
-          value:
-            codigo: FRAUDE_DETETADA
-            mensagem: Transferência bloqueada por deteção de fraude.
+         limiteExcedido:
+           value:
+             codigo: LIMITE_EXCEDIDO
+             mensagem: Limite diário de transferência excedido.
+          fraudeDetetada:
+            value:
+             codigo: FRAUDE_DETETADA
+             mensagem: Transferência bloqueada por deteção de fraude.
 
   /{crReferenceId}:
     uriParameters:
