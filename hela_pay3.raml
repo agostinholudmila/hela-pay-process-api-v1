@@ -35,7 +35,7 @@ types:
    minLength: 9
    maxLength: 9
    example: "923456789"  
-   
+
   PaymentInstruction:
     type: object
     properties:
@@ -50,6 +50,9 @@ types:
       montante:
         type: number
         format: double
+      telefoneDestino:
+         type: TelefoneDestino
+         description: Número de telefone de destino.
       estado:
         type: string
         enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
