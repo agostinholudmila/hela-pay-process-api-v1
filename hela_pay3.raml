@@ -186,14 +186,14 @@ types:
       post:
         displayName: Request
         description: |
-         RF-004/RF-005/RF-006/RF-007: Solicita a execução da transferência.
-         Internamente, a Process API:
-         1. solicita a validação do saldo e a autorização do cliente no sistema de origem;
-         2. verifica o limite diário aplicável;
-         3. solicita o débito na conta/wallet de origem;
-         4. após confirmação do débito, solicita o crédito na conta/wallet de destino;
-         5. caso o crédito não seja confirmado dentro do SLA definido, solicita a reversão do débito.Em caso de sucesso do crédito, a Process API atualiza o estado
-         da transferência para COMPLETED.
+          RF-004/RF-005/RF-006/RF-007: Solicita a execução da transferência.
+          Internamente, a Process API:
+          1. solicita a validação do saldo e a autorização do cliente no sistema de origem;
+          2. verifica o limite diário aplicável;
+          3. solicita o débito na conta/wallet de origem;
+          4. após confirmação do débito, solicita o crédito na conta/wallet de destino;
+          5. caso o crédito não seja confirmado dentro do SLA definido, solicita a reversão do débito.Em caso de sucesso do crédito, a Process API atualiza o estado
+          da transferência para COMPLETED.
 
         headers:
           Idempotency-Key:
