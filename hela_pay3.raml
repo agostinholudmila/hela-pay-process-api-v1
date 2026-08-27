@@ -108,12 +108,15 @@ types:
      estado: "PENDING"
      dataHoraRegisto: "2026-08-27T10:15:00Z"
      motivoDeteccao: "Frequência de transferências acima do limite definido."
-     
+
   Erro:
     type: object
     properties:
       codigo: string
       mensagem: string
+    example:
+      codigo: "TRANSFERENCIA_INVALIDA"
+      mensagem: "A transferência não pode ser processada."
 
 /payment-instruction:
   displayName: Payment Instruction - Initiate
