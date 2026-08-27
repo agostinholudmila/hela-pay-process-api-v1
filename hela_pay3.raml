@@ -79,6 +79,8 @@ types:
   PaymentInstructionCreateRequest:
     type: object
     properties:
+      origemSistema:
+        type: TipoOrigem
       contaOrigem: string
       telefoneDestino:
         type: TelefoneDestino
@@ -86,9 +88,9 @@ types:
         type: number
         format: double
         minimum: 0.01
-      origemSistema:
-        type: TipoOrigem
+      
     example:
+     origemSistema: "BANCO",
      contaOrigem: "AO06004400001234567890123"
      telefoneDestino: "923456789"
      montante: 15000.00
