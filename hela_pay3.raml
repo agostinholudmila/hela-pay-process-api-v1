@@ -42,6 +42,10 @@ types:
       telefoneDestino:
         type: string
         description: número de telefone de destino.
+        pattern: "^[9][0-9]{8}$"
+        minLength: 9
+        maxLength: 9
+        example: "923456789"
       montante:
         type: number
         format: double
@@ -51,13 +55,7 @@ types:
         description: |
           Estado do Control Record. FAILED cobre tanto rejeição por
           limite (Payment Order) como por fraude (Fraud Resolution).
-      TelefoneDestino:
-       type: string
-       pattern: "^[9][0-9]{8}$"
-       minLength: 9
-       maxLength: 9
-       example: "923456789"
-
+       
   PaymentInstructionCreateRequest:
     type: object
     properties:
