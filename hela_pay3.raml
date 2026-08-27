@@ -28,6 +28,12 @@ description: |
   exposto ao consumidor é o Control Record da Payment Instruction.
 
 types:
+
+  CRReferenceId:
+   type: string
+   pattern: "^PI-[0-9]{4}-[0-9]{6}$"
+   example: "PI-2026-000123"
+   
   TelefoneDestino:
    type: string
    description: número de telefone de destino.
