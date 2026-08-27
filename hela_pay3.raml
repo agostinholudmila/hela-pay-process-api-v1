@@ -58,14 +58,16 @@ types:
       contaOrigem: string
       telefoneDestino: string
       montante:
-        type:
-      format: double
+        type: number
+        format: double
 
   AuditLogEntry:
     type: object
     properties:
       idRegisto: string
-      estado: string
+      estado:
+        type: string
+        enum:
       dataCriacao:
         type: datetime
       motivo:
