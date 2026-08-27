@@ -86,7 +86,7 @@ types:
      contaOrigem: "AO06004400001234567890123"
      telefoneDestino: "923456789"
      montante: 15000.00
-     
+
   AuditLogEntry:
     type: object
     properties:
@@ -103,7 +103,12 @@ types:
           Preenchido quando o estado resulta de um alerta (limite
           excedido via Payment Order, ou anomalia via Fraud
           Resolution).
-
+    example:
+     idRegisto: "REG-001"
+     estado: "PENDING"
+     dataHoraRegisto: "2026-08-27T10:15:00Z"
+     motivoDeteccao: "Frequência de transferências acima do limite definido."
+     
   Erro:
     type: object
     properties:
