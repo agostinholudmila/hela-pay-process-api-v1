@@ -29,6 +29,10 @@ description: |
 
 types:
 
+  TipoOrigem:
+   type: string
+   enum: [BANCO, PIXEL]
+
   CRReferenceId:
    type: string
    pattern: "^PI-[0-9]{4}-[0-9]{6}$"
