@@ -165,11 +165,11 @@ types:
           application/json:
             type: Erro
       422:
-  description: Transferência rejeitada por regra de negócio.
-  body:
-    application/json:
-      type: Erro
-      examples:
+        description: Transferência rejeitada por regra de negócio.
+        body:
+         application/json:
+          type: Erro
+       examples:
         limiteExcedido:
           value:
             codigo: LIMITE_EXCEDIDO
