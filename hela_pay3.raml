@@ -57,13 +57,13 @@ types:
       fromAccRef :
         type: string
         description: IBAN/número da conta de origem.
-      montante:
+      curAmt :
         type: number
         format: double
       toAcctRef :
          type: TelefoneDestino
          description: Número de telefone de destino.
-      estado:
+      XferStatus :
         type: string
         enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
         description: |
