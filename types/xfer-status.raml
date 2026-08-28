@@ -2,6 +2,8 @@
 type: string
 enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
 description: |
-  Estado do Control Record. FAILED cobre tanto rejeição por
-  limite (Payment Order) como por fraude (Fraud Resolution).
-  (IFX: XferStatus — correspondência direta)
+  PENDING     — pedido recebido, ainda em processamento
+  AUTHORIZED  — débito autorizado pelo sistema de origem
+  EXECUTED    — débito na origem e crédito no destino confirmados
+  FAILED      — falha antes da conclusão (ex: limite excedido ou fraude)
+  REVERSED    — transferência revertida após conclusão
