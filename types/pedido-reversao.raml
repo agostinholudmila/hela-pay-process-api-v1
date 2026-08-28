@@ -1,0 +1,9 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  motivo:
+    type: !include motivo-reversao.raml
+  justificacao:
+    type: string
+    description: Texto livre explicando o motivo (para auditoria).
+example: !include ../examples/pedido-reversao.raml
