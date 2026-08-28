@@ -33,7 +33,9 @@ description: |
   Onde não existe correspondência no IFX, mantém-se a nomenclatura
   original do modelo conceitual (telefoneDestino, idRegisto,
   dataHoraRegisto, motivoDeteccao, chave de idempotência).
-  
+
+securitySchemes:
+  oauth2ClientCredentials: !include security/
 
 /payment-instruction:
   displayName: Payment Instruction - Initiate
