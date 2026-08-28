@@ -1,211 +1,29 @@
-#%RAML 1.0
- 
-#---------------------------------------------------------------------------
-# SEGURANÇA — autenticação delegada (RNF-003, RN-014)
-# A Process API NUNCA autentica o cliente final diretamente. Cada sistema de
-# origem (BANCO INFINITO, Mobile Money) autentica-se com as suas próprias
-# credenciais OAuth2 (client_credentials) — a autenticação do cliente humano
-# é responsabilidade exclusiva do sistema de origem, antes de este chamar a
-# Process API.
-# ---------------------------------------------------------------------------
-securitySchemes:
-  oauth2ClientCredentials:
-    type: OAuth 2.0
-    description: |
-      Autenticação sistema-a-sistema. O chamador (BANCO INFINITO ou Mobile Money)
-      obtém um token com as suas credenciais de cliente OAuth2 antes de chamar
-      qualquer endpoint desta API.
-    describedBy:
-      headers:
-        Authorization:
-          description: Bearer token OAuth2
-          type: string
-          example: "Bearer eyJhbGciOiJSUzI1NiIs..."
-      responses:
-        401:
-          description: Token ausente, inválido ou expirado
-        403:
-          description: Token válido, mas sem o scope necessário para esta operação
-    settings:
-      accessTokenUri: https://auth.pay.ao/oauth2/token
-      authorizationGrants: [client_credentials]
-      scopes:
-        - payments:write
-        - payments:read
-        
-# ---------------------------------------------------------------------------
-# RATE LIMITING (RNF genérico de proteção da API)
-# ---------------------------------------------------------------------------
-traits:
-  rateLimited:
-    responses:
-      429:
-        description: Limite de pedidos excedido para este cliente.
-        headers:
-          Retry-After:
-            description: Segundos até ser possível tentar novamente
-            type: integer
-        body:
-          application/json:
-            example: |
-              {
-                "error": "RATE_LIMIT_EXCEEDED",
-                "message": "Demasiados pedidos num curto período. Tente novamente mais tarde."
-              }
- 
-# ---------------------------------------------------------------------------
-# TIPOS DE DADOS
-# ---------------------------------------------------------------------------
-types:
- 
-  # Máquina de estados da transferência (Documento 05, diagrama de sequência)
-  EstadoTransferencia:
-    type: string
-    enum: [PENDING, COMPLETED, FAILED, REVERSED]
-    description: |
-      PENDING    — pedido recebido, ainda em processamento
-      COMPLETED  — débito na origem e crédito no destino confirmados
-      FAILED     — falha antes da conclusão (ex: destinatário inválido)
-      REVERSED   — transferência revertida após conclusão (RF-007/RF-008)
- 
-  Transferencia:
-    type: object
-    properties:
-      id: string
-      contaOrigemId: string
-      contaDestinoId: string
-      valor: number
-      estado: EstadoTransferencia
-      criadoEm: datetime
-      atualizadoEm: datetime
-    example: |
-      {
-        "id": "PAY-20260817-00001",
-        "contaOrigemId": "CONTA-001",
-        "contaDestinoId": "CONTA-002",
-        "valor": 50000,
-        "estado": "COMPLETED",
-        "criadoEm": "2026-08-17T10:15:00Z",
-        "atualizadoEm": "2026-08-17T10:15:04Z"
-      }
- 
-  PedidoTransferencia:
-    type: object
-    properties:
-      telefoneDestinatario:
-        type: string
-        description: Identificador do destinatário (RF-001/RF-002, RF-003)
-      valor:
-        type: number
-        minimum: 1
-    example: |
-      { "telefoneDestinatario": "923123456", "valor": 50000 }
- 
-  MotivoReversao:
-    type: string
-    enum: [PEDIDO_CLIENTE, FRAUDE_CONFIRMADA]
-    description: |
-      PEDIDO_CLIENTE     — reversão dentro de 24h, mediante pedido (RN-006)
-      FRAUDE_CONFIRMADA  — reversão por Compliance, sem limite de tempo (RN-007)
- 
-  PedidoReversao:
-    type: object
-    properties:
-      motivo: MotivoReversao
-      justificacao:
-        type: string
-        description: Texto livre explicando o motivo (para auditoria — RF-014)
-    example: |
-      { "motivo": "FRAUDE_CONFIRMADA", "justificacao": "Padrão de transações suspeitas detetado (UC-10)" }
- 
-# ---------------------------------------------------------------------------
-# RECURSOS
-# ---------------------------------------------------------------------------
-securedBy: [oauth2ClientCredentials]
- 
-/payments:
-  post:
-    is: [rateLimited]
-    description: |
-      Efetuar transferência (UC-01/UC-02). Cobre RF-001, RF-002, RF-003 a
-      RF-007, RF-009, RF-010, RF-012 a RF-015.
- 
-      Behavior Qualifier BIAN: Initiate (Payment Initiation) — cria uma nova
-      instância do Control Record da transferência. A confirmar com o
-      Diretor se este é o termo aceite para o domínio Payment Initiation.
-    securedBy: [{ oauth2ClientCredentials: { scopes: [payments:write] } }]
-    headers:
-      Idempotency-Key:
-        description: |
-          Chave única gerada pelo sistema de origem (RF-009/RF-010). Reenvios
-          com a mesma chave dentro de 24h devolvem o resultado da transação
-          original, sem novo processamento (RN-008).
-        type: string
-        required: true
-        example: "8f7a1234-5678-90ab-cdef-1234567890ab"
-    body:
-      application/json:
-        type: PedidoTransferencia
-    responses:
-      202:
-        description: Pedido aceite, transferência em processamento (estado inicial PENDING)
-        body:
-          application/json:
-            type: Transferencia
-      
-      400:
-        description: Dados do pedido inválidos
-      404:
-        description: Destinatário não encontrado no sistema de destino (RF-003)
-      409:
-        description: Chave de idempotência já usada com um payload diferente (RN-008)
-      422:
-        description: Limite diário ou de frequência excedido (RF-012/RF-013, RN-009/RN-010)
- 
-  /{paymentId}:
-    get:
-      description: |
-        Consultar estado da transferência (UC-03, RF-011).
- 
-        Behavior Qualifier BIAN: Retrieve — consulta sem alterar o estado.
-        Este termo é geralmente aceite pela generalidade dos Service Domains.
-      securedBy: [{ oauth2ClientCredentials: { scopes: [payments:read] } }]
-      responses:
-        200:
-          body:
-            application/json:
-              type: Transferencia
-        404:
-          description: Transferência não encontrada
- 
-    /reversals:
-      post:
-        is: [rateLimited]
-        description: |
-          Reverter transferência (UC-04). Cobre RF-007, RF-008, RN-005,
-          RN-006, RN-007. Pode ser acionado pelo sistema de origem/destino
-          (pedido do cliente, dentro de 24h) ou por Compliance (fraude
-          confirmada, sem limite de tempo) — ver diagrama de sequência UC-04.
- 
-          Behavior Qualifier BIAN: Control — gere/altera uma instância já
-          existente do Control Record (a transferência), em vez de criar
-          uma nova. A confirmar com o Diretor se Control é o termo aceite
-          para os domínios Payment Execution/Payment Order.
-        securedBy: [{ oauth2ClientCredentials: { scopes: [reversals:write] } }]
-        body:
-          application/json:
-            type: PedidoReversao
-        responses:
-          200:
-            description: Reversão aceite e processada (estado passa a REVERSED)
-            body:
-              application/json:
-                type: Transferencia
-          404:
-            description: Transferência não encontrada
-          422:
-            description: |
-              Motivo insuficiente para reversão, ou fora da janela de 24h
-              sem ser fraude confirmada (RN-006/RN-007) — ver o segundo
-              bloco "alt" do diagrama de sequência UC-04
- 
+#%RAML 1.0 SecurityScheme
+type: OAuth 2.0
+description: |
+  Autenticação sistema-a-sistema. O chamador (BANCO ou Mobile
+  Money) obtém um token com as suas credenciais de cliente OAuth2.
+describedBy:
+  headers:
+    Authorization:
+      description: Bearer token OAuth2
+      type: string
+      example: "Bearer eyJhbGciOiJSUzI1NiIs..."
+  responses:
+    401:
+      description: Token ausente, inválido ou expirado
+      body:
+        application/json:
+          type: !include ../types/erro.raml
+    403:
+      description: Token válido, mas sem o scope necessário para esta operação
+      body:
+        application/json:
+          type: !include ../types/erro.raml
+settings:
+  accessTokenUri: https://auth.pay.ao/oauth2/token
+  authorizationGrants: [client_credentials]
+  scopes:
+    - payment-instruction:write
+    - payment-instruction:read
+    - reversals:write
