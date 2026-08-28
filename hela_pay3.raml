@@ -38,22 +38,7 @@ description: |
 
 types:
 
-  TipoOrigem:
-   type: string
-   enum: [BANCO, PIXEL]
-
-  CRReferenceId:
-   type: string
-   pattern: "^PI-[0-9]{4}-[0-9]{6}$"
-   example: "PI-2026-000123"
-
-  TelefoneDestino:
-   type: string
-   description: número de telefone de destino.
-   pattern: "^[9][0-9]{8}$"
-   minLength: 9
-   maxLength: 9
-   example: "923456789"
+  
 
   PaymentInstruction:
     type: object
