@@ -4,11 +4,11 @@ properties:
   origemSistema:
    type: TipoOrigem
 
-   fromAccRef:
+  fromAccRef:
    type: !incude payment-instruction.raml
 
    telefoneDestino:
-    type: TelefoneDestino
+   type: !include telefone-destino.raml
 
       curAmt:
         type: number
