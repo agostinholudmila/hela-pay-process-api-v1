@@ -3,18 +3,4 @@ type: object
 properties:
   idRegisto: string
   XferStatus:
-    type: string
-    enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
-    description: |
-      (IFX: XferStatus — correspondência direta)
-  dataHoraRegisto:
-    type: datetime
-  motivoDeteccao:
-    type: string
-    required: false
-    description: |
-      Preenchido quando o estado resulta de um alerta (limite
-      excedido via Payment Order, ou anomalia via Fraud
-      Resolution).
-      (IFX: sem correspondência direta como motivo_falha; se
-      entendido como Alerta.motivo, aproxima-se de AlertType)
+    type: !include xfer-status.raml
