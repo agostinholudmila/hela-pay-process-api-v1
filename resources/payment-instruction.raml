@@ -1,2 +1,148 @@
-#%RAML 1.0
-title: payment-instruction
+displayName: Payment Instruction - Initiate
+
+post:
+  displayName: Initiate
+  is: [rateLimited]
+  description: |
+    RF-001/RF-002: Inicia a transferência. Antes de criar o CR,
+    consulta o Product Directory (Retrieve do limite diário,
+    RF-012). Se excedido, aciona Payment Order (alerta RF-012) e
+    devolve 422. Em paralelo, avalia padrão de frequência via
+    Fraud Resolution (RF-013); se anómalo, sinaliza para revisão
+    sem bloquear necessariamente a transferência.
+  securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:write] } }]
+  headers:
+    Idempotency-Key:
+      type: string
+      required: true
+  body:
+    application/json:
+      type: !include ../types/payment-instruction-create-request.raml
+  responses:
+    201:
+      body:
+        application/json:
+          type: !include ../types/payment-instruction.raml
+    400:
+      body:
+        application/json:
+          type: !include ../types/erro.raml
+    409:
+      description: Chave de idempotência já utilizada.
+      body:
+        application/json:
+          type: !include ../types/erro.raml
+    422:
+      description: Transferência rejeitada por regra de negócio.
+      body:
+        application/json:
+          type: !include ../types/erro.raml
+
+/{crReferenceId}:
+  uriParameters:
+    crReferenceId:
+      type: !include ../types/cr-reference-id.raml
+
+  get:
+    displayName: Retrieve
+    description: |
+      RF-011: Consulta o estado atual do Control Record.
+    securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:read] } }]
+    responses:
+      200:
+        body:
+          application/json:
+            type: !include ../types/payment-instruction.raml
+      404:
+        body:
+          application/json:
+            type: !include ../types/erro.raml
+
+  /execution-request:
+    post:
+      displayName: Request
+      is: [rateLimited]
+      description: |
+        RF-004/RF-005/RF-006/RF-007: Solicita a execução da transferência.
+        Internamente, a Process API:
+        1. solicita a validação do saldo e a autorização do cliente no sistema de origem;
+        2. verifica o limite diário aplicável;
+        3. solicita o débito na conta/wallet de origem;
+        4. após confirmação do débito, solicita o crédito na conta/wallet de destino;
+        5. caso o crédito não seja confirmado dentro do SLA definido, solicita a reversão do débito.
+        Em caso de sucesso do crédito, a Process API atualiza o estado
+        da transferência para COMPLETED.
+      securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:write] } }]
+      headers:
+        Idempotency-Key:
+          type: string
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include ../types/payment-instruction.raml
+        404:
+          body:
+            application/json:
+              type: !include ../types/erro.raml
+        422:
+          description: Autorização de débito negada ou saldo insuficiente.
+          body:
+            application/json:
+              type: !include ../types/erro.raml
+
+  /audit-log:
+    get:
+      displayName: Retrieve
+      description: |
+        RF-014: Consulta o histórico de estados do CR
+        (timestamps, motivo em caso de falha/reversão/alerta).
+        Corresponde a uma consulta ao Compliance Reporting
+        (correspondência indireta — este SD consolida os registos,
+        mas não é o dono direto do audit trail por transferência).
+      securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:read] } }]
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include ../types/audit-log-entry.raml[]
+        404:
+          body:
+            application/json:
+              type: !include ../types/erro.raml
+
+  /reversal:
+    post:
+      displayName: Control
+      is: [rateLimited]
+      description: |
+        Reverte uma transferência já concluída. Pode ser acionado pelo
+        sistema de origem/destino (pedido do cliente, dentro de 24h) ou
+        por Compliance (fraude confirmada, sem limite de tempo).
+
+        Behavior Qualifier BIAN: Control — gere/altera uma instância já
+        existente do Control Record, em vez de criar uma nova. A confirmar
+        com o Diretor se este é o termo aceite para os domínios Payment
+        Execution/Payment Order.
+      securedBy: [{ oauth2ClientCredentials: { scopes: [reversals:write] } }]
+      body:
+        application/json:
+          type: !include ../types/pedido-reversao.raml
+      responses:
+        200:
+          description: Reversão aceite e processada (estado passa a REVERSED).
+          body:
+            application/json:
+              type: !include ../types/payment-instruction.raml
+        404:
+          body:
+            application/json:
+              type: !include ../types/erro.raml
+        422:
+          description: |
+            Motivo insuficiente para reversão, ou fora da janela de 24h
+            sem ser fraude confirmada.
+          body:
+            application/json:
+              type: !include ../types/erro.raml
