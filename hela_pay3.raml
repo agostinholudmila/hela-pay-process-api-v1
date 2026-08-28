@@ -37,6 +37,19 @@ description: |
 securitySchemes:
   oauth2ClientCredentials: !include security/oauth2-cliente_credentials.raml
 
+securedBy: [oauth2ClientCredentials]
+
+traits:
+  rateLimited: !include traits/rate-limited.raml
+
+types:
+  PaymentInstruction: !include types/payment-instruction.raml
+  PaymentInstructionCreateRequest: !include types/payment-instruction-create-request.raml
+  AuditLogEntry: !include types/audit-log-entry.raml
+  PedidoReversao: !include types/pedido-reversao.raml
+  Erro: !include types/erro.raml
+
+/payment-instruction: !include resources/payment-instruction.raml
 /payment-instruction:
   displayName: Payment Instruction - Initiate
 
