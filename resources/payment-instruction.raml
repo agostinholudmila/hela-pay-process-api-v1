@@ -106,7 +106,7 @@ post:
         200:
           body:
             application/json:
-              type: !include ../types/audit-log-entry.raml[]
+              type: (!include ../types/audit-log-entry.raml)[]
         404:
           body:
             application/json:
