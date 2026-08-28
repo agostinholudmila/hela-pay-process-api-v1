@@ -1,0 +1,15 @@
+#%RAML 1.0 Trait
+description: Aplica um limite de requisições por instituição parceira.
+responses:
+  429:
+    description: Limite de pedidos excedido para este cliente.
+    headers:
+      Retry-After:
+        description: Segundos até ser possível tentar novamente
+        type: integer
+    body:
+      application/json:
+        type: !include ../types/erro.raml
+        example:
+          codigo: "RATE_LIMIT_EXCEEDED"
+          mensagem: "Demasiados pedidos num curto período. Tente novamente mais tarde."
