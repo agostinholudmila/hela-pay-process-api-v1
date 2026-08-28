@@ -26,9 +26,5 @@ properties:
       assume conta_destino_id -> toAcctRef, mas aqui o destino
       é identificado por telefone/wallet, não por conta)
   XferStatus:
-    type: string
-    enum: [PENDING, AUTHORIZED, EXECUTED, FAILED, REVERSED]
-    description: |
-      Estado do Control Record. FAILED cobre tanto rejeição por
-      limite (Payment Order) como por fraude (Fraud Resolution).
-      (IFX: XferStatus — correspondência direta)
+    type: !include xfer-status.raml
+    
