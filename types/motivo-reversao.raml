@@ -1,0 +1,8 @@
+#%RAML 1.0 DataType
+#%RAML 1.0 DataType
+type: string
+enum: [PEDIDO_CLIENTE, FRAUDE_CONFIRMADA]
+description: |
+  PEDIDO_CLIENTE     — reversão dentro de 24h, mediante pedido do cliente.
+  FRAUDE_CONFIRMADA  — reversão por Compliance, sem limite de tempo.
+example: !include ../examples/motivo-reversao.raml
