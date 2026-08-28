@@ -4,8 +4,6 @@ version: v1
 baseUri: https://api.hela-pay.ao/process/{version}
 mediaType: application/json
 
-uses:
-  Security: Security/Hela_Pay_Security.raml
 
 description: |
   Process API que orquestra a Control Record (CR) do Service Domain
@@ -35,6 +33,7 @@ description: |
   Onde não existe correspondência no IFX, mantém-se a nomenclatura
   original do modelo conceitual (telefoneDestino, idRegisto,
   dataHoraRegisto, motivoDeteccao, chave de idempotência).
+  
 
 /payment-instruction:
   displayName: Payment Instruction - Initiate
