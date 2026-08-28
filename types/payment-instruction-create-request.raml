@@ -2,14 +2,12 @@
 type: object
 properties:
   origemSistema:
-   type: !include tipo-origem.raml
-
+    type: !include tipo-origem.raml
   fromAccRef:
-   type: string
+    type: string
   telefoneDestino:
-   type: !include telefone-destino.raml
+    type: !include telefone-destino.raml
   curAmt:
-   type: number
-   format: double
-   minimum: 0.01
-    
+    type: number
+    format: double
+    minimum: 0.01
