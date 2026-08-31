@@ -60,7 +60,7 @@ post:
   /execution-request:
     post:
       displayName: Request
-      is: [rateLimited]
+      is: [rateLimited, ]
       description: |
         RF-004/RF-005/RF-006/RF-007: Solicita a execução da transferência.
         Internamente, a Process API:
@@ -72,10 +72,6 @@ post:
         Em caso de sucesso do crédito, a Process API atualiza o estado
         da transferência para COMPLETED.
       securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:write] } }]
-      headers:
-        Idempotency-Key:
-          type: string
-          required: true
       responses:
         200:
           body:
