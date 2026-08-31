@@ -60,7 +60,7 @@ post:
   /execution-request:
     post:
       displayName: Request
-      is: [rateLimited, ]
+      is: [rateLimited, idempotent]
       description: |
         RF-004/RF-005/RF-006/RF-007: Solicita a execução da transferência.
         Internamente, a Process API:
