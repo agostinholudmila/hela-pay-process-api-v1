@@ -2,7 +2,7 @@ displayName: Payment Instruction - Initiate
 
 post:
   displayName: Initiate
-  is: [rateLimited]
+  is: [rateLimited, idempotent]
   description: |
     RF-001/RF-002: Inicia a transferência. Antes de criar o CR,
     consulta o Product Directory (Retrieve do limite diário,
