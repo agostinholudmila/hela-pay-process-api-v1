@@ -1,0 +1,10 @@
+#%RAML 1.0 Trait
+description: Aplica-se a operações de escrita que aceitam uma chave de idempotência para evitar processamento duplicado.
+headers:
+  Idempotency-Key:
+    description: |
+      Chave única gerada pelo sistema de origem. Reenvios com a
+      mesma chave devolvem o resultado da transação original,
+      sem novo processamento.
+    type: string
+    required: true
