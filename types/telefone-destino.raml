@@ -1,7 +1,11 @@
 #%RAML 1.0 DataType
 type: string
-description: número de telefone de destino.
-pattern: "^[9][0-9]{8}$"
+description: |
+  Número de telefone de destino, fornecido pelo consumidor da API.
+  A resolução para a conta/wallet associada é feita internamente
+  pelo sistema (fora do contrato desta API) — por isso não há
+  correspondência direta com toAcctRef no IFX, que assume que o
+  consumidor já conhece e envia uma referência de conta.pattern: "^[9][0-9]{8}$"
 minLength: 9
 maxLength: 9
 example: !include ../examples/telefone-destino.raml
