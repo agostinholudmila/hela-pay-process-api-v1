@@ -37,6 +37,9 @@ post:
       body:
         application/json:
           type: !include ../types/erro.raml
+          examples:
+            limiteExcedido: !include ../examples/erro-limite-excedido.raml
+            fraudeDetetada: !include ../examples/erro-fraude-detetada.raml
 
 /{crReferenceId}:
   uriParameters:
