@@ -11,10 +11,6 @@ post:
     Fraud Resolution (RF-013); se anómalo, sinaliza para revisão
     sem bloquear necessariamente a transferência.
   securedBy: [{ oauth2ClientCredentials: { scopes: [payment-instruction:write] } }]
-  headers:
-    Idempotency-Key:
-      type: string
-      required: true
   body:
     application/json:
       type: !include ../types/payment-instruction-create-request.raml
